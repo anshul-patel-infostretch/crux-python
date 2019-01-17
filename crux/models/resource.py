@@ -541,6 +541,14 @@ class Resource(CruxModel):
         label_tuple_obj = tuple(label_objects)  # type: Tuple[Label, ...]
         return label_tuple_obj
 
+    def get_all_labels_dict(self):
+        labels = self.get_all_labels()
+        label_dict = {}
+        for label in labels:
+            label_dict[label.label_key] = label.label_value
+
+        return label_dict
+
     def _get_folder(self):
         # type: () -> str
         """Fetches the folder of the resource.

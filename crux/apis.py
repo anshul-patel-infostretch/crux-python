@@ -9,7 +9,7 @@ from typing import (  # noqa: F401 pylint: disable=unused-import
 
 from crux.client import CruxClient
 from crux.config import CruxConfig
-from crux.models import Dataset, Identity, Job
+from crux.models import Dataset, Delivery, Identity, Job
 
 
 class Crux(object):
@@ -160,3 +160,37 @@ class Crux(object):
         return self.api_client.api_call(
             "GET", ["jobs", job_id], model=Job, headers=headers
         )
+
+    def get_deliveries(self, id, start_date=None, end_date=None):
+        # type: (str, str, str) -> List[Delivery]
+        """Get Deliveries
+
+        Args:
+            id (str): Dataset id.
+            start_date (str): Start Date. Yet to be implemented.
+            end_date (str): End Date. Yet to be implemented.
+        """
+        dataset_object = self.get_dataset(id)
+        predicates = [{"op": "eq", "key": "delivery_type", "val": "log"}]
+        resources = dataset_object.find_resources_by_label(predicates=predicates)
+
+        delivery_ids = set()
+
+        for resource in resources:
+            label_dict = resource.get_all_labels_dict()
+            if "delivery_id" in label_dict:
+                delivery_ids.add(
+                    Delivery(
+                        id=label_dict["delivery_id"],
+                        version_id=label_dict["version_id"],
+                        ingestion_id=label_dict["ingestion_id"],
+                        workflow_id=label_dict["workflow_id"],
+                        delivery_type=label_dict["delivery_type"],
+                        file_name=label_dict["fileName"],
+                        source_digest=label_dict["source_digest"],
+                        crux_available_dt=label_dict["crux_available_dt"],
+                        schedule_dt=label_dict["schedule_dt"],
+                    )
+                )
+
+        return list(delivery_ids)

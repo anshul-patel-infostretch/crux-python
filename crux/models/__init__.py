@@ -3,6 +3,7 @@ Module containing models that represent objects returned by the API.
 """
 
 from crux.models.dataset import Dataset
+from crux.models.delivery import Delivery
 from crux.models.file import File
 from crux.models.folder import Folder
 from crux.models.identity import Identity
@@ -25,6 +26,7 @@ __all__ = (
     "Folder",
     "Table",
     "Dataset",
+    "Delivery",
     "Query",
     "Label",
 )
