@@ -190,6 +190,7 @@ class Crux(object):
                         source_digest=label_dict["source_digest"],
                         crux_available_dt=label_dict["crux_available_dt"],
                         schedule_dt=label_dict["schedule_dt"],
+                        resource=resource
                     )
                 )
 

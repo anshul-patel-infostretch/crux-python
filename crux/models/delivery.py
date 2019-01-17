@@ -17,6 +17,7 @@ class Delivery(CruxModel):
         source_digest=None,
         crux_available_dt=None,
         schedule_dt=None,
+        resource=None
     ):
 
         self._id = id
@@ -28,6 +29,7 @@ class Delivery(CruxModel):
         self._source_digest = source_digest
         self._crux_available_dt = crux_available_dt
         self._schedule_dt = schedule_dt
+        self._resource = resource
 
     @property
     def id(self):
@@ -64,6 +66,10 @@ class Delivery(CruxModel):
     @property
     def schedule_dt(self):
         return self._schedule_dt
+
+    @property
+    def resource(self):
+        return self._resource
 
     def get_summary(self):
         # type: () -> bool
