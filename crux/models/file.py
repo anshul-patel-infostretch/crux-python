@@ -57,6 +57,7 @@ class File(Resource):
             "tags": self.tags,
             "type": self.type,
             "folder": self.folder,
+            "provenance": self.provenance
         }
 
     def _get_signed_url(self):

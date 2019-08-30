@@ -80,10 +80,10 @@ class Resource(CruxModel):
         self._media_type = media_type
         self._modified_at = modified_at
         self._tags = tags
-        self._folder = None
         self._labels = labels if labels else {}  # type: Dict[str, str]
         self._folder = folder
 
+        self.atomic_update = False
         self.connection = connection
         self.raw_response = raw_response
 
@@ -96,6 +96,12 @@ class Resource(CruxModel):
     def description(self):
         """str: Gets the Resource Description."""
         return self._description
+
+    @description.setter
+    def description(self, description):
+        self._description = description
+        if self.atomic_update:
+            self.update(True)
 
     @property
     def media_type(self):
@@ -122,15 +128,33 @@ class Resource(CruxModel):
         """str: Gets the Resource Name."""
         return self._name
 
+    @name.setter
+    def name(self, name):
+        self._name = name
+        if self.atomic_update:
+            self.update(True)
+
     @property
     def config(self):
         """str: Gets the config."""
         return self._config
 
+    @config.setter
+    def config(self, config):
+        self._config = config
+        if self.atomic_update:
+            self.update(True)
+
     @property
     def provenance(self):
         """str: Gets the Provenance."""
         return self._provenance
+
+    @provenance.setter
+    def provenance(self, provenance):
+        self._provenance = provenance
+        if self.atomic_update:
+            self.update(True)
 
     @property
     def type(self):
@@ -141,6 +165,12 @@ class Resource(CruxModel):
     def tags(self):
         """:obj:`list` of :obj:`str`: Gets the Resource Tags."""
         return self._tags
+
+    @tags.setter
+    def tags(self, tags):
+        self._tags = tags
+        if self.atomic_update:
+            self.update(True)
 
     @property
     def labels(self):
@@ -180,6 +210,12 @@ class Resource(CruxModel):
 
         self._folder = self._get_folder()
         return self._folder
+
+    @folder.setter
+    def folder(self, folder):
+        self._folder = folder
+        if self.atomic_update:
+            self.update(True)
 
     def to_dict(self):
         # type: () -> Dict[str, Any]
@@ -284,8 +320,8 @@ class Resource(CruxModel):
             "DELETE", ["resources", self.id], headers=headers
         )
 
-    def update(self, name=None, description=None, tags=None, provenance=None):
-        # type: (str, str, List[str], str) -> bool
+    def update(self, atomic=False):
+        # type: (bool) -> bool
         """Updates the metadata for Resource.
 
         Args:
@@ -304,38 +340,16 @@ class Resource(CruxModel):
         headers = Headers(
             {"content-type": "application/json", "accept": "application/json"}
         )
-        body = {}  # type: Dict[str, Union[str, List, Dict]]
+        body = self.to_dict()
+        resource_object = self.connection.api_call(
+            "PUT", ["resources", self.id], headers=headers, json=body, model=Resource
+        )
 
-        if name is not None:
-            body["name"] = name
-        if description is not None:
-            body["description"] = description
-        if tags is not None:
-            if isinstance(tags, list):
-                body["tags"] = tags
-            else:
-                raise TypeError("Tags should be of type list")
-        if provenance is not None:
-            body["provenance"] = provenance
+        self.__dict__.update(resource_object.__dict__)
+        if atomic:
+            self.atomic_update = atomic
 
-        if body:
-            response = self.connection.api_call(
-                "PUT", ["resources", self.id], headers=headers, json=body
-            )
-
-            response_dict = response.json()
-
-            if "name" in response_dict:
-                self._name = response_dict["name"]
-            if "tags" in response_dict and tags is not None:
-                self._tags = response_dict["tags"]
-            if "description" in response_dict:
-                self._description = response_dict["description"]
-            if "provenance" in response_dict:
-                self._provenance = response_dict["provenance"]
-            return True
-        else:
-            raise ValueError("Name, Description, Tags or Provenance should be set")
+        return True
 
     def add_permission(self, identity_id, permission):
         # type: (str, str) -> Union[bool, Permission]
